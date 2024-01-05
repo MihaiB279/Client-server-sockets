@@ -54,6 +54,7 @@ public class Tara implements Runnable {
                     //clear
                     batchMessage.setLength(0);
                     batchSize=20;
+                    perechiCount = 0;
                 }
             }
             reader.close();
@@ -75,6 +76,37 @@ public class Tara implements Runnable {
             String fileName = fileNamesList.get(i);
 
             batchSize = readBatchFromFile(fileName, batchSize);
+        }
+
+        concurs.incrementNrReadFiles(10); //10 pb pt fiecare tara
+
+        sendRequestCountryRanking();
+        sendRequestFinalRanking();
+    }
+
+    private void sendRequestFinalRanking() {
+        try {
+            concurs.sendMessage("Tara "+numeTara+": cerere clasament tari.");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void sendRequestCountryRanking() {
+        while(!concurs.isTerminat())
+        {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        try {
+            concurs.sendMessage("Tara "+numeTara+": cerere clasament final.");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }

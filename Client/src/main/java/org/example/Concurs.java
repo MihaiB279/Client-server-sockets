@@ -5,12 +5,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Concurs {
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
     private int deltaT;
+    private int nrReadFiles = 0;
+    private final Lock lock = new ReentrantLock();
+    private boolean terminat = false;
 
     public Concurs(int deltaT) {
         this.deltaT = deltaT;
@@ -37,11 +42,21 @@ public class Concurs {
         clientSocket.close();
     }
 
-//    public void givenGreetingClient_whenServerRespondsWhenStarted_thenCorrect() throws IOException {
-//        startConnection("127.0.0.1", 6666);
-//        String response = sendMessage("hello server");
-//
-////        stopConnection();
-//    }
+    public synchronized void setTerminat(boolean terminat) {
+        this.terminat = terminat;
+    }
+    public synchronized boolean isTerminat() {
+        return this.terminat;
+    }
+
+    public synchronized void incrementNrReadFiles(int nrFiles) {
+        lock.lock();
+        this.nrReadFiles += nrFiles;
+        System.out.println("Read files: " + nrReadFiles);
+        if (nrReadFiles==50) {
+            setTerminat(true);
+        }
+        lock.unlock();
+    }
 
 }
