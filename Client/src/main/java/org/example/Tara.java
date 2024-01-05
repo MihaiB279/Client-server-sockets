@@ -84,7 +84,7 @@ public class Tara implements Runnable {
         sendRequestFinalRanking();
     }
 
-    private void sendRequestFinalRanking() {
+    private void sendRequestCountryRanking() {
         try {
             concurs.sendMessage("Cerere clasament tari.");
         } catch (InterruptedException e) {
@@ -93,7 +93,7 @@ public class Tara implements Runnable {
 
     }
 
-    private synchronized void sendRequestCountryRanking() {
+    private synchronized void sendRequestFinalRanking() {
         while(!concurs.isTerminat())
         {
             try {
