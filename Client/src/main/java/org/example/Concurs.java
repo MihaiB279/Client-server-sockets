@@ -27,13 +27,20 @@ public class Concurs {
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
-    public synchronized void sendMessage(String msg) throws InterruptedException {
+    public void sendMessage(String msg) throws InterruptedException {
         out.println(msg);
         Thread.sleep(deltaT);
     }
 
-    public String receiveMessage() throws IOException {
-        return in.readLine();
+    public synchronized StringBuilder receiveMessage() throws IOException {
+        //read multiple lines fromm the result, not done yet
+        String line;
+        StringBuilder result = new StringBuilder();
+        while ((line = in.readLine()) != null) {
+            result.append(line);
+            result.append('\n');
+        }
+        return result;
     }
 
     public void stopConnection() throws IOException {

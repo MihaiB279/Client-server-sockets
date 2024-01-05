@@ -1,10 +1,7 @@
 package threads;
 
 import Server.Server;
-import model.CountryList;
-import model.CountryNode;
-import model.MyNode;
-import model.MySynchronizedQueue;
+import model.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,13 +14,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Producer implements Runnable {
     private MySynchronizedQueue queue;
+    private MyLinkedList list;
     private Socket clientSocket;
     private AtomicInteger clientsFinished;
     private Server server;
 
-    public Producer(Server server, Socket socket, MySynchronizedQueue queue, AtomicInteger clientsFinished) {
+    public Producer(Server server, Socket socket, MySynchronizedQueue queue, MyLinkedList list, AtomicInteger clientsFinished) {
         this.server = server;
         this.queue = queue;
+        this.list = list;
         this.clientSocket = socket;
         this.clientsFinished = clientsFinished;
     }
@@ -49,9 +48,9 @@ public class Producer implements Runnable {
     }
 
     private void sendData() throws IOException, ExecutionException {
-        CompletableFuture<CountryList> rankingFuture = server.handleCountryRankingsRequest();
+        CompletableFuture<CountryList> result = server.handleCountryRankingsRequest();
         PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-        while (!rankingFuture.isDone()) {
+        while (!result.isDone()) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -60,7 +59,7 @@ public class Producer implements Runnable {
         }
 
         try {
-            CountryList countryList = rankingFuture.get();
+            CountryList countryList = result.get();
 
             CountryNode currentMyNode = countryList.getHeadElement();
             StringBuilder batchMessage = new StringBuilder();
@@ -76,12 +75,50 @@ public class Producer implements Runnable {
         }
     }
 
-    private void sendRanking() {
+    private void sendRanking() throws IOException {
         clientsFinished.incrementAndGet();
+
+        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+        MyNode currentMyNode = list.getHeadElement();
+        StringBuilder batchMessage = new StringBuilder();
+        while (currentMyNode != null) {
+            batchMessage.append(currentMyNode.country)
+                    .append(",")
+                    .append(currentMyNode.score)
+                    .append("\n");
+            currentMyNode = currentMyNode.next;
+        }
+
+        CompletableFuture<CountryList> result = server.handleCountryRankingsRequest();
+        while (!result.isDone()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        try {
+            CountryList countryList = result.get();
+
+            CountryNode currentMyNodeCountry = countryList.getHeadElement();
+            batchMessage = new StringBuilder();
+            while (currentMyNode != null) {
+                batchMessage.append(currentMyNodeCountry.country)
+                        .append(",")
+                        .append(currentMyNodeCountry.score)
+                        .append("\n");
+                currentMyNodeCountry = currentMyNodeCountry.next;
+            }
+            out.println(batchMessage);
+        } catch (InterruptedException ignored) {
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
-    private void processData(String data) {
+    private void processData(String data) throws IOException {
         if (data.equals("Cerere clasament tari.")) {
             try {
                 sendData();
@@ -90,7 +127,7 @@ public class Producer implements Runnable {
             }
             return;
         }
-        if (data.equals("Send final ranking")) {
+        if (data.equals("Cerere clasament final.")) {
             sendRanking();
         }
         String[] lines = data.split("\n");

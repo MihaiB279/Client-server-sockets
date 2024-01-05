@@ -87,7 +87,12 @@ public class Tara implements Runnable {
     private void sendRequestCountryRanking() {
         try {
             concurs.sendMessage("Cerere clasament tari.");
+            StringBuilder response = concurs.receiveMessage();
+            System.out.println(Thread.currentThread().getName());
+            System.out.println(response);
         } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
 

@@ -7,7 +7,7 @@ public class MySynchronizedQueue {
     private int size;
 
     public synchronized void append(String id, int score, String country) {
-        System.out.println(id + " " + score + " " + country);
+        //System.out.println(id + " " + score + " " + country);
         MyNode newMyNode = new MyNode(id, score, country);
         if (head == null) {
             head = newMyNode;

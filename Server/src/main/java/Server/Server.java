@@ -1,9 +1,6 @@
 package Server;
 
-import model.CountryList;
-import model.MyLinkedList;
-import model.MyNode;
-import model.MySynchronizedQueue;
+import model.*;
 import threads.Consumer;
 import threads.Producer;
 
@@ -22,16 +19,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Server {
     private ServerSocket serverSocket;
     private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
     private ExecutorService threadPool;
     private AtomicInteger clientsFinished;
     private MySynchronizedQueue queue;
     private MyLinkedList list;
-    private static CountryList listCountry;
+    private CountryList listCountry;
     private int pw;
     private int deltaTime;
-    private static CompletableFuture<Void> rankingFuture = null;
+    private static CompletableFuture<CountryList> rankingFuture = null;
     private static long lastRankingCalculationTime = 0;
 
     public Server(int pr, int pw, int deltaTime) {
@@ -39,29 +34,6 @@ public class Server {
         this.pw = pw;
         this.deltaTime = deltaTime;
         clientsFinished = new AtomicInteger();
-    }
-
-    private void countryRanking() {
-        synchronized (list) {
-            MyNode currentMyNode = list.getHeadElement();
-            while (currentMyNode != null) {
-                listCountry.append(currentMyNode.score, currentMyNode.country);
-                currentMyNode = currentMyNode.next;
-            }
-        }
-        listCountry.recalibrateList();
-    }
-
-    public CompletableFuture<CountryList> handleCountryRankingsRequest() {
-        long currentTime = System.currentTimeMillis();
-        if (rankingFuture != null && currentTime - lastRankingCalculationTime < deltaTime) {
-            System.out.println("gata rank");
-            return rankingFuture.thenApply(ignored -> listCountry);
-        } else {
-            rankingFuture = CompletableFuture.runAsync(this::countryRanking);
-            System.out.println("gata rank");
-            return rankingFuture.thenApply(ignored -> listCountry);
-        }
     }
 
     public void start(int port) throws IOException {
@@ -78,7 +50,7 @@ public class Server {
 
         while (clientsFinished.get() != 5) {
             clientSocket = serverSocket.accept();
-            Runnable clientHandler = new Producer(this, clientSocket, queue, clientsFinished);
+            Runnable clientHandler = new Producer(this, clientSocket, queue, list, clientsFinished);
             threadPool.execute(clientHandler);
         }
 
@@ -95,9 +67,17 @@ public class Server {
     }
 
     public void stop() throws IOException {
-        in.close();
-        out.close();
         clientSocket.close();
         serverSocket.close();
+    }
+
+    public synchronized CompletableFuture<CountryList> handleCountryRankingsRequest() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastRankingCalculationTime < deltaTime && rankingFuture != null) {
+            return rankingFuture;
+        }
+        rankingFuture = new CountryRanking().calculate(list);
+        lastRankingCalculationTime = currentTime;
+        return rankingFuture;
     }
 }
