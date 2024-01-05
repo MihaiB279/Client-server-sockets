@@ -27,7 +27,7 @@ public class Concurs {
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
-    public void sendMessage(String msg) throws InterruptedException {
+    public synchronized void sendMessage(String msg) throws InterruptedException {
         out.println(msg);
         Thread.sleep(deltaT);
     }
@@ -55,6 +55,7 @@ public class Concurs {
         System.out.println("Read files: " + nrReadFiles);
         if (nrReadFiles==50) {
             setTerminat(true);
+            notifyAll();
         }
         lock.unlock();
     }
