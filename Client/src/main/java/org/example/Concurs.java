@@ -33,12 +33,15 @@ public class Concurs {
     }
 
     public synchronized StringBuilder receiveMessage() throws IOException {
-        //read multiple lines fromm the result, not done yet
         String line;
         StringBuilder result = new StringBuilder();
-        while ((line = in.readLine()) != null) {
-            result.append(line);
-            result.append('\n');
+        line = in.readLine();
+        while (!(line.equals("end"))) {
+            if (!(line.equals("begin"))) {
+                result.append(line);
+                result.append('\n');
+            }
+            line = in.readLine();
         }
         return result;
     }
@@ -49,22 +52,22 @@ public class Concurs {
         clientSocket.close();
     }
 
-    public synchronized void setTerminat(boolean terminat) {
-        this.terminat = terminat;
-    }
-    public synchronized boolean isTerminat() {
-        return this.terminat;
+    public synchronized void waitForTerminat() throws InterruptedException {
+        while (!terminat) {
+            wait();
+        }
     }
 
+    public synchronized void signalTerminat() {
+        terminat = true;
+        notifyAll();
+    }
     public synchronized void incrementNrReadFiles(int nrFiles) {
-        lock.lock();
         this.nrReadFiles += nrFiles;
         System.out.println("Read files: " + nrReadFiles);
-        if (nrReadFiles==50) {
-            setTerminat(true);
-            notifyAll();
+        if (nrReadFiles == 50) {
+            signalTerminat();
         }
-        lock.unlock();
     }
 
 }

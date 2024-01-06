@@ -1,8 +1,6 @@
 package org.example;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.List;
 import java.util.Set;
 
@@ -23,8 +21,7 @@ public class Tara implements Runnable {
         this.batchMessage = new StringBuilder();
     }
 
-    public int readBatchFromFile(String fileName, int batchSize)
-    {
+    public int readBatchFromFile(String fileName, int batchSize) {
         int perechiCount = 0;
 
         try {
@@ -39,23 +36,27 @@ public class Tara implements Runnable {
                 if (parts.length == 2) {
                     String ID = parts[0];
                     int punctaj = Integer.parseInt(parts[1]);
-
                     batchMessage.append(ID)
-                                .append(",")
-                                .append(punctaj)
-                                .append("\n");
+                            .append(",")
+                            .append(punctaj)
+                            .append("\n");
 
                     perechiCount++;
                 }
 
-                if (perechiCount == batchSize)
-                {
+                if (perechiCount == batchSize) {
                     concurs.sendMessage(batchMessage.toString());
                     //clear
                     batchMessage.setLength(0);
-                    batchSize=20;
+                    batchSize = 20;
                     perechiCount = 0;
                 }
+            }
+            if (perechiCount != 0) {
+                concurs.sendMessage(batchMessage.toString());
+                batchMessage.setLength(0);
+                batchSize = 20;
+                perechiCount = 0;
             }
             reader.close();
         } catch (IOException e) {
@@ -72,14 +73,13 @@ public class Tara implements Runnable {
         // Citirea fișierelor și adăugarea în coadă
 
         int batchSize = 20;
-        for (int i = startIndex; i <endIndex; i++) {
+        for (int i = startIndex; i < endIndex; i++) {
             String fileName = fileNamesList.get(i);
 
             batchSize = readBatchFromFile(fileName, batchSize);
         }
 
         concurs.incrementNrReadFiles(10); //10 pb pt fiecare tara
-
         sendRequestCountryRanking();
         sendRequestFinalRanking();
     }
@@ -88,30 +88,28 @@ public class Tara implements Runnable {
         try {
             concurs.sendMessage("Cerere clasament tari.");
             StringBuilder response = concurs.receiveMessage();
-            System.out.println(Thread.currentThread().getName());
-            System.out.println(response);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Raking_" + numeTara))) {
+                writer.write(response.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (InterruptedException | IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
-    private synchronized void sendRequestFinalRanking() {
-        while(!concurs.isTerminat())
-        {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
+    private void sendRequestFinalRanking() {
         try {
+            concurs.waitForTerminat();
             concurs.sendMessage("Cerere clasament final.");
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            StringBuilder response = concurs.receiveMessage();
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Final_Raking_" + numeTara))) {
+                writer.write(response.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (InterruptedException | IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 }

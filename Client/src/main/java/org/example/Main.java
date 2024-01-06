@@ -16,7 +16,6 @@ public class Main {
         int p = 5;
         int deltaT = 1000;
 
-        int nrTotalFiles = 5*10;
         List<String> fileNamesList = new ArrayList<>();
 
         // Adaugam numele fisierelor intr o lista
@@ -25,7 +24,7 @@ public class Main {
 
             for (int problem = 1; problem <= 10; problem++) {
                 String problemName = "P" + problem;
-                String fileName = "C:\\Users\\aless\\OneDrive\\Documente\\2023 Year 3\\Proiect PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
+                String fileName = "C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
                 fileNamesList.add(fileName);
             }
         }
@@ -41,7 +40,6 @@ public class Main {
         int nrFilesPerThread = 10;
         int startIndex = 0;
 
-        // Crearea și pornirea thread-urilor pt fiecare tara
         for (int i = 0; i < p; i++) {
             int endIndex = startIndex + nrFilesPerThread;
 
@@ -52,7 +50,6 @@ public class Main {
             startIndex = endIndex;
         }
 
-        //readers
         for (int i = 0; i < p; i++){
             try{
                 threads[i].join();
@@ -61,8 +58,11 @@ public class Main {
             }
         }
 
-        // Scrie clasamentul final în fișier
-//        concurs.scrieClasament();
+        try{
+            concurs.stopConnection();
+        } catch(Exception e) {
+            System.out.println(e);
+        }
 
         long endTime = System.nanoTime();
         long timeDuration = endTime - startTime;

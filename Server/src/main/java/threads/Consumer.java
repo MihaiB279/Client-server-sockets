@@ -21,6 +21,9 @@ public class Consumer implements Runnable {
     @Override
     public void run() {
         while (clientsFinished.get() != 5 || queue.getSize() > 0) {
+            //System.out.println(clientsFinished.get());
+           // System.out.println(queue.getSize());
+           // System.out.println();
             MyNode head = queue.getHeadElement();
             if (head != null) {
                 String id = head.id;

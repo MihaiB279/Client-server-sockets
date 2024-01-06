@@ -89,6 +89,7 @@ public class Main {
         try{
             Server server = new Server(pr, pw, deltaTime);
             server.start(6666);
+            server.stop();
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }

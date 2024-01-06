@@ -19,18 +19,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Server {
     private ServerSocket serverSocket;
     private Socket clientSocket;
+    private BufferedReader in;
+    private PrintWriter out;
     private ExecutorService threadPool;
     private AtomicInteger clientsFinished;
     private MySynchronizedQueue queue;
     private MyLinkedList list;
     private CountryList listCountry;
     private int pw;
+    private int pr;
     private int deltaTime;
     private static CompletableFuture<CountryList> rankingFuture = null;
     private static long lastRankingCalculationTime = 0;
 
     public Server(int pr, int pw, int deltaTime) {
-        threadPool = Executors.newFixedThreadPool(pr);
+        this.pr = pr;
         this.pw = pw;
         this.deltaTime = deltaTime;
         clientsFinished = new AtomicInteger();
@@ -38,8 +41,18 @@ public class Server {
 
     public void start(int port) throws IOException {
         serverSocket = new ServerSocket(port);
+        clientSocket = serverSocket.accept();
+        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        out = new PrintWriter(clientSocket.getOutputStream(), true);
+
         queue = new MySynchronizedQueue();
         list = new MyLinkedList();
+        threadPool = Executors.newFixedThreadPool(pr);
+        for (int i = 0; i < pr; i++) {
+            Runnable clientHandler = new Producer(this, clientSocket, in, out, queue, list, clientsFinished);
+            threadPool.execute(clientHandler);
+        }
+        threadPool.shutdown();
 
         Thread[] consumersThreads = new Thread[pw];
         for (int i = 0; i < pw; i++) {
@@ -47,14 +60,6 @@ public class Server {
             consumersThreads[i] = new Thread(consumer);
             consumersThreads[i].start();
         }
-
-        while (clientsFinished.get() != 5) {
-            clientSocket = serverSocket.accept();
-            Runnable clientHandler = new Producer(this, clientSocket, queue, list, clientsFinished);
-            threadPool.execute(clientHandler);
-        }
-
-        threadPool.shutdown();
         Arrays.stream(consumersThreads).forEach(thread -> {
             try {
                 thread.join();
@@ -62,11 +67,12 @@ public class Server {
                 throw new RuntimeException(e);
             }
         });
-
-        stop();
+        System.out.println("gata");
     }
 
     public void stop() throws IOException {
+        in.close();
+        out.close();
         clientSocket.close();
         serverSocket.close();
     }

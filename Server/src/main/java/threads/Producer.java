@@ -18,10 +18,14 @@ public class Producer implements Runnable {
     private Socket clientSocket;
     private AtomicInteger clientsFinished;
     private Server server;
+    private BufferedReader in;
+    private PrintWriter out;
 
-    public Producer(Server server, Socket socket, MySynchronizedQueue queue, MyLinkedList list, AtomicInteger clientsFinished) {
+    public Producer(Server server, Socket socket, BufferedReader in, PrintWriter out, MySynchronizedQueue queue, MyLinkedList list, AtomicInteger clientsFinished) {
         this.server = server;
         this.queue = queue;
+        this.in = in;
+        this.out = out;
         this.list = list;
         this.clientSocket = socket;
         this.clientsFinished = clientsFinished;
@@ -30,32 +34,19 @@ public class Producer implements Runnable {
     @Override
     public void run() {
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-
             String inputData;
-            while ((inputData = in.readLine()) != null) {
+            while (clientsFinished.get() != 5 && (inputData = in.readLine()) != null) {
                 processData(inputData);
             }
         } catch (IOException e) {
             System.err.println("Error while reading from clients: " + e.getMessage());
-        } finally {
-            try {
-                clientSocket.close();
-            } catch (IOException e) {
-                System.err.println("Error while reading from clients: " + e.getMessage());
-            }
         }
     }
 
-    private void sendData() throws IOException, ExecutionException {
+    private void sendData() throws ExecutionException {
         CompletableFuture<CountryList> result = server.handleCountryRankingsRequest();
-        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
         while (!result.isDone()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            result.join();
         }
 
         try {
@@ -63,6 +54,7 @@ public class Producer implements Runnable {
 
             CountryNode currentMyNode = countryList.getHeadElement();
             StringBuilder batchMessage = new StringBuilder();
+            batchMessage.append("begin\n");
             while (currentMyNode != null) {
                 batchMessage.append(currentMyNode.country)
                         .append(",")
@@ -70,50 +62,47 @@ public class Producer implements Runnable {
                         .append("\n");
                 currentMyNode = currentMyNode.next;
             }
+            batchMessage.append("end\n");
             out.println(batchMessage);
         } catch (InterruptedException ignored) {
         }
     }
 
-    private void sendRanking() throws IOException {
+    private void sendRanking() {
         clientsFinished.incrementAndGet();
 
-        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
         MyNode currentMyNode = list.getHeadElement();
         StringBuilder batchMessage = new StringBuilder();
+        batchMessage.append("begin\n");
         while (currentMyNode != null) {
-            batchMessage.append(currentMyNode.country)
+            batchMessage.append(currentMyNode.id)
                     .append(",")
                     .append(currentMyNode.score)
+                    .append(",")
+                    .append(currentMyNode.country)
                     .append("\n");
             currentMyNode = currentMyNode.next;
         }
 
         CompletableFuture<CountryList> result = server.handleCountryRankingsRequest();
         while (!result.isDone()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            result.join();
         }
 
         try {
             CountryList countryList = result.get();
 
             CountryNode currentMyNodeCountry = countryList.getHeadElement();
-            batchMessage = new StringBuilder();
-            while (currentMyNode != null) {
+            while (currentMyNodeCountry != null) {
                 batchMessage.append(currentMyNodeCountry.country)
                         .append(",")
                         .append(currentMyNodeCountry.score)
                         .append("\n");
                 currentMyNodeCountry = currentMyNodeCountry.next;
             }
+            batchMessage.append("end\n");
             out.println(batchMessage);
-        } catch (InterruptedException ignored) {
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+        } catch (InterruptedException | ExecutionException ignored) {
         }
     }
 
