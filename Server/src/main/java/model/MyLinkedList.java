@@ -84,7 +84,7 @@ public class MyLinkedList {
         while (current.next != null) {
             MyNode index = current.next;
             while (index != null) {
-                if (current.score < index.score || (current.score == index.score && current.id.compareTo(index.id) < 0)) {
+                if (current.score < index.score || (current.score == index.score && current.id.compareTo(index.id) > 0)) {
                     int tempScore = current.score;
                     current.score = index.score;
                     index.score = tempScore;
