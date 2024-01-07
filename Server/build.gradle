@@ -17,3 +17,13 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+// Define the main class for your Java application
+def mainClass = 'Main'
+
+// Create a custom run task
+task runJava(type: JavaExec) {
+    main = mainClass
+    classpath = sourceSets.main.runtimeClasspath
+    args = ['4', '4', '1000'] // Replace with your desired arguments
+}

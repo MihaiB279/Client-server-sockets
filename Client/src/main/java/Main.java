@@ -1,5 +1,3 @@
-package org.example;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,8 +6,8 @@ public class Main {
         long startTime = System.nanoTime();
 
 //        int p = Integer.parseInt(args[0]); // Numărul de tari ca si threaduri
-        int p = 5;
-        int deltaT = 1000;
+        int p = args.length > 0 ? Integer.parseInt(args[0]) : 5;
+        int deltaT = args.length > 0 ? Integer.parseInt(args[1]) : 1000;
 
         List<String> fileNamesList = new ArrayList<>();
 
@@ -19,8 +17,8 @@ public class Main {
 
             for (int problem = 1; problem <= 10; problem++) {
                 String problemName = "P" + problem;
-                String fileName = "C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
-                //String fileName = "C:\\Users\\aless\\OneDrive\\Documente\\2023 Year 3\\Proiect PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
+//                String fileName = "C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
+                String fileName = "C:\\Users\\aless\\OneDrive\\Documente\\2023 Year 3\\Proiect PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
                 fileNamesList.add(fileName);
             }
         }
@@ -29,7 +27,7 @@ public class Main {
         try{
             concurs.startConnection("127.0.0.1", 6666);
         } catch(Exception e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
 
         Thread[] threads = new Thread[p];
@@ -57,7 +55,7 @@ public class Main {
         try{
             concurs.stopConnection();
         } catch(Exception e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
 
         long endTime = System.nanoTime();
