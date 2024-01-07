@@ -80,7 +80,7 @@ public class CountryList {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
             CountryNode currentMyNode = head;
             while (currentMyNode != null) {
-                writer.write("(" + currentMyNode.country + ", " + currentMyNode.score + ")\n");
+                writer.write(currentMyNode.country + "," + currentMyNode.score + "\n");
                 currentMyNode = currentMyNode.next;
             }
         } catch (IOException e) {

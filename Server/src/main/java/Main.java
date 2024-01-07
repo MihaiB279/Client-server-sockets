@@ -2,7 +2,6 @@ import Server.Server;
 import model.MyLinkedList;
 
 public class Main {
-    private static MyLinkedList myLinkedList;
     private static int pw = 4, pr = 4, deltaTime = 1000;
 
     public static void main(String[] args) {

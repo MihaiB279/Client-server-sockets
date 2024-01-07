@@ -15,29 +15,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Producer implements Runnable {
     private MySynchronizedQueue queue;
     private MyLinkedList list;
-    private Socket clientSocket;
-    private AtomicInteger clientsFinished;
     private Server server;
     private BufferedReader in;
     private PrintWriter out;
 
-    public Producer(Server server, Socket socket, BufferedReader in, PrintWriter out, MySynchronizedQueue queue, MyLinkedList list, AtomicInteger clientsFinished) {
+    public Producer(Server server, BufferedReader in, PrintWriter out, MySynchronizedQueue queue, MyLinkedList list) {
         this.server = server;
         this.queue = queue;
         this.in = in;
         this.out = out;
         this.list = list;
-        this.clientSocket = socket;
-        this.clientsFinished = clientsFinished;
     }
 
     @Override
     public void run() {
         try {
             String inputData;
-            while (clientsFinished.get() != 5 && (inputData = in.readLine()) != null) {
+            while (Server.getClientsFinished() != 5 && (inputData = in.readLine()) != null) {
                 processData(inputData);
             }
+
         } catch (IOException e) {
             System.err.println("Error while reading from clients: " + e.getMessage());
         }
@@ -69,8 +66,12 @@ public class Producer implements Runnable {
     }
 
     private void sendRanking() {
-        clientsFinished.incrementAndGet();
+        Server.incrementClientsFinished();
+        if(Server.getClientsFinished() == 5){
+            list.printToFile("final_ranking.txt");
+        }
 
+        CompletableFuture<CountryList> result = server.handleCountryRankingsRequest();
         MyNode currentMyNode = list.getHeadElement();
         StringBuilder batchMessage = new StringBuilder();
         batchMessage.append("begin\n");
@@ -84,13 +85,15 @@ public class Producer implements Runnable {
             currentMyNode = currentMyNode.next;
         }
 
-        CompletableFuture<CountryList> result = server.handleCountryRankingsRequest();
         while (!result.isDone()) {
             result.join();
         }
 
         try {
             CountryList countryList = result.get();
+            if(Server.getClientsFinished() == 5){
+                countryList.printToFile("country_ranking.txt");
+            }
 
             CountryNode currentMyNodeCountry = countryList.getHeadElement();
             while (currentMyNodeCountry != null) {

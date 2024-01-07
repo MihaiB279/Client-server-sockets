@@ -1,10 +1,19 @@
 package model;
 
 
+import Server.Server;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class MySynchronizedQueue {
     private MyNode head;
     private MyNode tail;
     private int size;
+    public MySynchronizedQueue() {
+        this.head = null;
+        this.tail = null;
+        this.size = 0;
+    }
 
     public synchronized void append(String id, int score, String country) {
         MyNode newMyNode = new MyNode(id, score, country);

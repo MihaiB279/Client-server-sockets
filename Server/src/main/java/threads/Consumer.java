@@ -1,5 +1,6 @@
 package threads;
 
+import Server.Server;
 import model.MyLinkedList;
 import model.MyNode;
 import model.MySynchronizedQueue;
@@ -10,18 +11,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Consumer implements Runnable {
     private MySynchronizedQueue queue;
     private MyLinkedList list;
-    private AtomicInteger clientsFinished;
 
-    public Consumer(MySynchronizedQueue queue, MyLinkedList list, AtomicInteger clientsFinished) {
+    public Consumer(MySynchronizedQueue queue, MyLinkedList list) {
         this.queue = queue;
-        this.clientsFinished = clientsFinished;
         this.list = list;
     }
 
     @Override
     public void run() {
-        while (clientsFinished.get() != 5 || queue.getSize() > 0) {
-            //System.out.println(clientsFinished.get());
+        while (Server.getClientsFinished() < 5 || queue.getSize() > 0) {
+            //System.out.println("Consumer:" + Thread.currentThread().getName() + " " + Server.getClientsFinished());
            // System.out.println(queue.getSize());
            // System.out.println();
             MyNode head = queue.getHeadElement();
@@ -32,5 +31,6 @@ public class Consumer implements Runnable {
                 list.append(id, score, country);
             }
         }
+
     }
 }

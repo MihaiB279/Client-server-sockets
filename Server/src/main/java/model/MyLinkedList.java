@@ -15,11 +15,13 @@ public class MyLinkedList {
         this.head = null;
         this.deletedNodes = new HashSet<>();
     }
-    public MyNode getHeadElement(){
+
+    public MyNode getHeadElement() {
         return head;
     }
+
     public synchronized void append(String id, int score, String country) {
-        if(score == -1 || deletedNodes.contains(id)){
+        if (score == -1 || deletedNodes.contains(id)) {
             if (!deletedNodes.contains(id)) {
                 delete(id);
                 deletedNodes.add(id);
@@ -32,7 +34,7 @@ public class MyLinkedList {
             return;
         }
         MyNode alreadyExistingMyNode = search(id);
-        if(alreadyExistingMyNode != null){
+        if (alreadyExistingMyNode != null) {
             alreadyExistingMyNode.score += score;
             recalibrateList();
             return;
@@ -89,6 +91,9 @@ public class MyLinkedList {
                     String tempId = current.id;
                     current.id = index.id;
                     index.id = tempId;
+                    String tempC = current.country;
+                    current.country = index.country;
+                    index.country = tempC;
                 }
                 index = index.next;
             }
@@ -108,7 +113,7 @@ public class MyLinkedList {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
             MyNode currentMyNode = head;
             while (currentMyNode != null) {
-                writer.write("(" + currentMyNode.id + ", " + currentMyNode.score + ")\n");
+                writer.write(currentMyNode.id + "," + currentMyNode.score + "," + currentMyNode.country + "\n");
                 currentMyNode = currentMyNode.next;
             }
         } catch (IOException e) {

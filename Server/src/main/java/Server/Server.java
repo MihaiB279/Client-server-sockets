@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
@@ -22,7 +23,7 @@ public class Server {
     private BufferedReader in;
     private PrintWriter out;
     private ExecutorService threadPool;
-    private AtomicInteger clientsFinished;
+    private static int clientsFinished;
     private MySynchronizedQueue queue;
     private MyLinkedList list;
     private CountryList listCountry;
@@ -36,7 +37,15 @@ public class Server {
         this.pr = pr;
         this.pw = pw;
         this.deltaTime = deltaTime;
-        clientsFinished = new AtomicInteger();
+        this.clientsFinished = 0;
+    }
+
+    public static synchronized void incrementClientsFinished(){
+        clientsFinished++;
+    }
+
+    public static int getClientsFinished(){
+        return clientsFinished;
     }
 
     public void start(int port) throws IOException {
@@ -47,26 +56,24 @@ public class Server {
 
         queue = new MySynchronizedQueue();
         list = new MyLinkedList();
-        threadPool = Executors.newFixedThreadPool(pr);
+        threadPool = Executors.newFixedThreadPool(pr + pw);
         for (int i = 0; i < pr; i++) {
-            Runnable clientHandler = new Producer(this, clientSocket, in, out, queue, list, clientsFinished);
+            Runnable clientHandler = new Producer(this, in, out, queue, list);
             threadPool.execute(clientHandler);
+        }
+
+        for (int i = 0; i < pw; i++) {
+            Runnable consumer = new Consumer(queue, list);
+            threadPool.execute(consumer);
         }
         threadPool.shutdown();
 
-        Thread[] consumersThreads = new Thread[pw];
-        for (int i = 0; i < pw; i++) {
-            Consumer consumer = new Consumer(queue, list, clientsFinished);
-            consumersThreads[i] = new Thread(consumer);
-            consumersThreads[i].start();
+        try {
+            threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        Arrays.stream(consumersThreads).forEach(thread -> {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
+
         System.out.println("gata");
     }
 
