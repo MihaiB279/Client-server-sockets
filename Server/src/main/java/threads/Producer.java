@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Producer implements Runnable {
@@ -43,7 +44,8 @@ public class Producer implements Runnable {
 
     private void sendData() throws ExecutionException {
         try {
-            CountryList countryList = server.handleCountryRankingsRequest();
+            Future<CountryList> result = server.handleCountryRankingsRequest();
+            CountryList countryList = result.get();
             CountryNode currentMyNode = countryList.getHeadElement();
             StringBuilder batchMessage = new StringBuilder();
             batchMessage.append("begin\n");
@@ -80,7 +82,8 @@ public class Producer implements Runnable {
         }
 
         try {
-            CountryList countryList = server.handleCountryRankingsRequest();
+            Future<CountryList> result = server.handleCountryRankingsRequest();
+            CountryList countryList = result.get();
             if(queue.getClientsFinished() == 5){
                 countryList.printToFile("country_ranking.txt");
             }

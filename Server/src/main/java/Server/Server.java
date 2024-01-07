@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,6 +29,7 @@ public class Server {
     private int deltaTime;
     private static CompletableFuture<CountryList> rankingFuture = null;
     private static long lastRankingCalculationTime = 0;
+    private ExecutorService executor = Executors.newFixedThreadPool(5);
 
     public Server(int pr, int pw, int deltaTime) {
         this.pr = pr;
@@ -67,18 +69,18 @@ public class Server {
         serverSocket.close();
     }
 
-    public synchronized CountryList handleCountryRankingsRequest() throws ExecutionException, InterruptedException {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastRankingCalculationTime < deltaTime && rankingFuture != null) {
-            return rankingFuture.get();
-        }
-        rankingFuture = new CountryRanking().calculate(list);
-        lastRankingCalculationTime = currentTime;
-        while (!rankingFuture.isDone()) {
-            rankingFuture.join();
-        }
+    public  Future<CountryList> handleCountryRankingsRequest() throws ExecutionException, InterruptedException {
+        Future<CountryList> result = executor.submit(() -> {
+            CountryList listCountry = new CountryList();
+            MyNode currentMyNode = list.getHeadElement();
+            while (currentMyNode != null) {
+                listCountry.append(currentMyNode.score, currentMyNode.country);
+                currentMyNode = currentMyNode.next;
+            }
+            listCountry.recalibrateList();
+            return listCountry;
+        });
 
-        return rankingFuture.get();
-
+        return result;
     }
 }
