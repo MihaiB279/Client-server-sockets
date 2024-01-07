@@ -70,7 +70,7 @@ public class Tara implements Runnable {
 
     @Override
     public void run() {
-        // Citirea fișierelor și adăugarea în coadă
+        // Citirea fișierelor și trimiterea lor la server
 
         int batchSize = 20;
         for (int i = startIndex; i < endIndex; i++) {
@@ -88,7 +88,7 @@ public class Tara implements Runnable {
         try {
             concurs.sendMessage("Cerere clasament tari.");
             StringBuilder response = concurs.receiveMessage();
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Raking_" + numeTara))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Ranking_" + numeTara))) {
                 writer.write(response.toString());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -103,7 +103,7 @@ public class Tara implements Runnable {
             concurs.waitForTerminat();
             concurs.sendMessage("Cerere clasament final.");
             StringBuilder response = concurs.receiveMessage();
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Final_Raking_" + numeTara))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Final_Ranking_" + numeTara))) {
                 writer.write(response.toString());
             } catch (IOException e) {
                 e.printStackTrace();
