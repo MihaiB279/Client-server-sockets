@@ -21,8 +21,8 @@ $suma = 0
 for ($i = 0; $i -lt $param5; $i++){
     Write-Host "Rulare" ($i+1)
     $a = java $args[0] $args[1] $args[2] $args[3] # rulare class java
-    Write-Host $a[$a.length-1]
-    $suma += $a[$a.length-1]
+    Write-Host $a
+    $suma += $a
 }
 $media = $suma / $param5
 #Write-Host $suma
