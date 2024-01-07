@@ -79,8 +79,8 @@ public class Tara implements Runnable {
             batchSize = readBatchFromFile(fileName, batchSize);
         }
 
-        concurs.incrementNrReadFiles(10); //10 pb pt fiecare tara
         sendRequestCountryRanking();
+        concurs.incrementNrReadFiles(10); //10 pb pt fiecare tara
         sendRequestFinalRanking();
     }
 
@@ -88,8 +88,8 @@ public class Tara implements Runnable {
         try {
             concurs.sendMessage("Cerere clasament tari.");
             StringBuilder response = concurs.receiveMessage();
-//            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Ranking_" + numeTara))) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\aless\\OneDrive\\Documente\\2023 Year 3\\Proiect PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Ranking_" + numeTara))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Ranking_" + numeTara))) {
+            //try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\aless\\OneDrive\\Documente\\2023 Year 3\\Proiect PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Ranking_" + numeTara))) {
                 writer.write(response.toString());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -104,8 +104,8 @@ public class Tara implements Runnable {
             concurs.waitForTerminat();
             concurs.sendMessage("Cerere clasament final.");
             StringBuilder response = concurs.receiveMessage();
-//            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Final_Ranking_" + numeTara))) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\aless\\OneDrive\\Documente\\2023 Year 3\\Proiect PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Final_Ranking_" + numeTara))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Final_Ranking_" + numeTara))) {
+            ///try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\aless\\OneDrive\\Documente\\2023 Year 3\\Proiect PPD\\Client-server-sockets\\Client\\src\\main\\java\\results\\Final_Ranking_" + numeTara))) {
                 writer.write(response.toString());
             } catch (IOException e) {
                 e.printStackTrace();

@@ -1,12 +1,9 @@
 package threads;
 
-import Server.Server;
 import model.MyLinkedList;
 import model.MyNode;
 import model.MySynchronizedQueue;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Consumer implements Runnable {
     private MySynchronizedQueue queue;
@@ -19,7 +16,7 @@ public class Consumer implements Runnable {
 
     @Override
     public void run() {
-        while (Server.getClientsFinished() < 5 || queue.getSize() > 0) {
+        while (queue.getClientsFinished() < 5 || queue.getSize() > 0) {
             //System.out.println("Consumer:" + Thread.currentThread().getName() + " " + Server.getClientsFinished());
            // System.out.println(queue.getSize());
            // System.out.println();

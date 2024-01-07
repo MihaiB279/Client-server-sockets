@@ -14,7 +14,6 @@ public class Concurs {
     private BufferedReader in;
     private int deltaT;
     private int nrReadFiles = 0;
-    private final Lock lock = new ReentrantLock();
     private boolean terminat = false;
 
     public Concurs(int deltaT) {

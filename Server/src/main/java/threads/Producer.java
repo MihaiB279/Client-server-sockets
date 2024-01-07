@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,7 +32,7 @@ public class Producer implements Runnable {
     public void run() {
         try {
             String inputData;
-            while (Server.getClientsFinished() != 5 && (inputData = in.readLine()) != null) {
+            while (queue.getClientsFinished() != 5 && (inputData = in.readLine()) != null) {
                 processData(inputData);
             }
 
@@ -41,14 +42,8 @@ public class Producer implements Runnable {
     }
 
     private void sendData() throws ExecutionException {
-        CompletableFuture<CountryList> result = server.handleCountryRankingsRequest();
-        while (!result.isDone()) {
-            result.join();
-        }
-
         try {
-            CountryList countryList = result.get();
-
+            CountryList countryList = server.handleCountryRankingsRequest();
             CountryNode currentMyNode = countryList.getHeadElement();
             StringBuilder batchMessage = new StringBuilder();
             batchMessage.append("begin\n");
@@ -66,12 +61,11 @@ public class Producer implements Runnable {
     }
 
     private void sendRanking() {
-        Server.incrementClientsFinished();
-        if(Server.getClientsFinished() == 5){
+        queue.incrementClientsFinished();
+        if(queue.getClientsFinished() == 5){
             list.printToFile("final_ranking.txt");
         }
 
-        CompletableFuture<CountryList> result = server.handleCountryRankingsRequest();
         MyNode currentMyNode = list.getHeadElement();
         StringBuilder batchMessage = new StringBuilder();
         batchMessage.append("begin\n");
@@ -85,13 +79,9 @@ public class Producer implements Runnable {
             currentMyNode = currentMyNode.next;
         }
 
-        while (!result.isDone()) {
-            result.join();
-        }
-
         try {
-            CountryList countryList = result.get();
-            if(Server.getClientsFinished() == 5){
+            CountryList countryList = server.handleCountryRankingsRequest();
+            if(queue.getClientsFinished() == 5){
                 countryList.printToFile("country_ranking.txt");
             }
 
@@ -105,7 +95,9 @@ public class Producer implements Runnable {
             }
             batchMessage.append("end\n");
             out.println(batchMessage);
-        } catch (InterruptedException | ExecutionException ignored) {
+        }
+        catch (ExecutionException | InterruptedException ex){
+            System.err.println(ex.getMessage());
         }
     }
 

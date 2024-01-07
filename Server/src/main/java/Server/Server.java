@@ -11,10 +11,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
@@ -23,10 +21,8 @@ public class Server {
     private BufferedReader in;
     private PrintWriter out;
     private ExecutorService threadPool;
-    private static int clientsFinished;
     private MySynchronizedQueue queue;
     private MyLinkedList list;
-    private CountryList listCountry;
     private int pw;
     private int pr;
     private int deltaTime;
@@ -37,15 +33,6 @@ public class Server {
         this.pr = pr;
         this.pw = pw;
         this.deltaTime = deltaTime;
-        this.clientsFinished = 0;
-    }
-
-    public static synchronized void incrementClientsFinished(){
-        clientsFinished++;
-    }
-
-    public static int getClientsFinished(){
-        return clientsFinished;
     }
 
     public void start(int port) throws IOException {
@@ -61,20 +48,16 @@ public class Server {
             Runnable clientHandler = new Producer(this, in, out, queue, list);
             threadPool.execute(clientHandler);
         }
-
         for (int i = 0; i < pw; i++) {
             Runnable consumer = new Consumer(queue, list);
             threadPool.execute(consumer);
         }
         threadPool.shutdown();
-
         try {
-            threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            threadPool.awaitTermination(1, TimeUnit.HOURS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        System.out.println("gata");
     }
 
     public void stop() throws IOException {
@@ -84,13 +67,18 @@ public class Server {
         serverSocket.close();
     }
 
-    public synchronized CompletableFuture<CountryList> handleCountryRankingsRequest() {
+    public synchronized CountryList handleCountryRankingsRequest() throws ExecutionException, InterruptedException {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastRankingCalculationTime < deltaTime && rankingFuture != null) {
-            return rankingFuture;
+            return rankingFuture.get();
         }
         rankingFuture = new CountryRanking().calculate(list);
         lastRankingCalculationTime = currentTime;
-        return rankingFuture;
+        while (!rankingFuture.isDone()) {
+            rankingFuture.join();
+        }
+
+        return rankingFuture.get();
+
     }
 }

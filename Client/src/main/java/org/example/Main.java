@@ -1,10 +1,5 @@
 package org.example;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,8 +19,8 @@ public class Main {
 
             for (int problem = 1; problem <= 10; problem++) {
                 String problemName = "P" + problem;
-//                String fileName = "C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
-                String fileName = "C:\\Users\\aless\\OneDrive\\Documente\\2023 Year 3\\Proiect PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
+                String fileName = "C:\\Users\\MihaiBucur\\Desktop\\Facultate anul 3\\PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
+                //String fileName = "C:\\Users\\aless\\OneDrive\\Documente\\2023 Year 3\\Proiect PPD\\Client-server-sockets\\Client\\src\\Rezultate" + countryName + "_" + problemName + ".txt";
                 fileNamesList.add(fileName);
             }
         }
