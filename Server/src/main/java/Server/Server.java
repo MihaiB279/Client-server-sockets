@@ -10,11 +10,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
     private ServerSocket serverSocket;
@@ -55,6 +51,7 @@ public class Server {
             threadPool.execute(consumer);
         }
         threadPool.shutdown();
+
         try {
             threadPool.awaitTermination(1, TimeUnit.HOURS);
         } catch (InterruptedException e) {
@@ -63,6 +60,7 @@ public class Server {
     }
 
     public void stop() throws IOException {
+        executor.shutdown();
         in.close();
         out.close();
         clientSocket.close();

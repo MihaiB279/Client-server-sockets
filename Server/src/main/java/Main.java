@@ -1,9 +1,4 @@
 import Server.Server;
-import model.MyLinkedList;
-
-import java.util.Map;
-
-import static java.lang.System.exit;
 
 public class Main {
     private static int pw = 4, pr = 4, deltaTime = 1000;
@@ -16,7 +11,6 @@ public class Main {
             Server server = new Server(pr, pw, deltaTime);
             server.start(6666);
             server.stop();
-            exit(1);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
