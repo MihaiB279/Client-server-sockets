@@ -74,9 +74,9 @@ public class Tara implements Runnable {
             String fileName = fileNamesList.get(i);
 
             batchSize = readBatchFromFile(fileName, batchSize);
+            sendRequestCountryRanking();
         }
 
-        sendRequestCountryRanking();
         concurs.incrementNrReadFiles(); //10 pb pt fiecare tara
         sendRequestFinalRanking();
     }

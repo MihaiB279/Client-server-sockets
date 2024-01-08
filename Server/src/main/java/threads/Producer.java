@@ -44,8 +44,7 @@ public class Producer implements Runnable {
 
     private void sendData() throws ExecutionException {
         try {
-            Future<CountryList> result = server.handleCountryRankingsRequest();
-            CountryList countryList = result.get();
+            CountryList countryList = server.handleCountryRankingsRequest();
             CountryNode currentMyNode = countryList.getHeadElement();
             StringBuilder batchMessage = new StringBuilder();
             batchMessage.append("begin\n");
@@ -82,8 +81,7 @@ public class Producer implements Runnable {
         }
 
         try {
-            Future<CountryList> result = server.handleCountryRankingsRequest();
-            CountryList countryList = result.get();
+            CountryList countryList = server.handleCountryRankingsRequest();
             if(queue.getClientsFinished() == 5){
                 countryList.printToFile("country_ranking.txt");
             }

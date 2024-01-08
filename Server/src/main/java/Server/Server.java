@@ -20,6 +20,7 @@ public class Server {
     private ExecutorService threadPool;
     private MySynchronizedQueue queue;
     private MyLinkedList list;
+    private CountryList countryList;
     private int pw;
     private int pr;
     private int deltaTime;
@@ -67,18 +68,23 @@ public class Server {
         serverSocket.close();
     }
 
-    public  Future<CountryList> handleCountryRankingsRequest() throws ExecutionException, InterruptedException {
-        Future<CountryList> result = executor.submit(() -> {
-            CountryList listCountry = new CountryList();
-            MyNode currentMyNode = list.getHeadElement();
-            while (currentMyNode != null) {
-                listCountry.append(currentMyNode.score, currentMyNode.country);
-                currentMyNode = currentMyNode.next;
-            }
-            listCountry.recalibrateList();
-            return listCountry;
-        });
-
-        return result;
+    public  CountryList handleCountryRankingsRequest() throws ExecutionException, InterruptedException {
+        long currentTime = System.currentTimeMillis();
+        if (lastRankingCalculationTime == 0 || currentTime - lastRankingCalculationTime < deltaTime) {
+            lastRankingCalculationTime = currentTime;
+            Future<CountryList> result = executor.submit(() -> {
+                CountryList listCountry = new CountryList();
+                MyNode currentMyNode = list.getHeadElement();
+                while (currentMyNode != null) {
+                    listCountry.append(currentMyNode.score, currentMyNode.country);
+                    currentMyNode = currentMyNode.next;
+                }
+                listCountry.recalibrateList();
+                return listCountry;
+            });
+            countryList = result.get();
+            return countryList;
+        }
+        return countryList;
     }
 }
