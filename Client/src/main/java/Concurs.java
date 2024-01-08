@@ -3,14 +3,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
 
 public class Concurs {
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
     private int deltaX;
-    private int nrReadFiles = 0;
-    private boolean terminat = false;
+    private CountDownLatch latch;
 
     public Concurs(int deltaX) {
         this.deltaX = deltaX;
@@ -20,6 +20,7 @@ public class Concurs {
         clientSocket = new Socket(ip, port);
         out = new PrintWriter(clientSocket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        latch = new CountDownLatch(5);
     }
 
     public void sendMessage(String msg) throws InterruptedException {
@@ -47,22 +48,11 @@ public class Concurs {
         clientSocket.close();
     }
 
-    public synchronized void waitForTerminat() throws InterruptedException {
-        while (!terminat) {
-            wait();
-        }
+    public void waitForTerminat() throws InterruptedException {
+        latch.await();
     }
 
-    public synchronized void signalTerminat() {
-        terminat = true;
-        notifyAll();
+    public synchronized void incrementNrReadFiles() {
+        latch.countDown();
     }
-    public synchronized void incrementNrReadFiles(int nrFiles) {
-        this.nrReadFiles += nrFiles;
-//        System.out.println("Read files: " + nrReadFiles);
-        if (nrReadFiles == 50) {
-            signalTerminat();
-        }
-    }
-
 }

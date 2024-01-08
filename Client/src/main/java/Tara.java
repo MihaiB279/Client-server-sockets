@@ -77,7 +77,7 @@ public class Tara implements Runnable {
         }
 
         sendRequestCountryRanking();
-        concurs.incrementNrReadFiles(10); //10 pb pt fiecare tara
+        concurs.incrementNrReadFiles(); //10 pb pt fiecare tara
         sendRequestFinalRanking();
     }
 
