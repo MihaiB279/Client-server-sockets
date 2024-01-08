@@ -7,7 +7,7 @@ public class Main {
 
 //        int p = Integer.parseInt(args[0]); // Numărul de tari ca si threaduri
         int p = args.length > 0 ? Integer.parseInt(args[0]) : 5;
-        int deltaT = args.length > 0 ? Integer.parseInt(args[1]) : 1000;
+        int deltaX = args.length > 0 ? Integer.parseInt(args[1]) : 1000;
 
         List<String> fileNamesList = new ArrayList<>();
 
@@ -23,7 +23,7 @@ public class Main {
             }
         }
 
-        Concurs concurs = new Concurs(deltaT);
+        Concurs concurs = new Concurs(deltaX);
         try{
             concurs.startConnection("127.0.0.1", 6666);
         } catch(Exception e) {

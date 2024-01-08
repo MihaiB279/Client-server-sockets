@@ -8,12 +8,12 @@ public class Concurs {
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
-    private int deltaT;
+    private int deltaX;
     private int nrReadFiles = 0;
     private boolean terminat = false;
 
-    public Concurs(int deltaT) {
-        this.deltaT = deltaT;
+    public Concurs(int deltaX) {
+        this.deltaX = deltaX;
     }
 
     public void startConnection(String ip, int port) throws IOException {
@@ -24,7 +24,7 @@ public class Concurs {
 
     public void sendMessage(String msg) throws InterruptedException {
         out.println(msg);
-        Thread.sleep(deltaT);
+        Thread.sleep(deltaX);
     }
 
     public synchronized StringBuilder receiveMessage() throws IOException {
